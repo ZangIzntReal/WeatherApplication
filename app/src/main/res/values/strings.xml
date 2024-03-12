@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">WeatherApplication</string>
+    <string name="api_key">817a728548af1b7c6ceee8df962311fd</string>
+    <string name="tv_city">Hanoi</string>
+    <string name="tv_country">Viet Nam</string>
+    <string name="tv_Temp">20</string>
+    <string name="tv_MinMax">Thấp nhất 18, Cao nhất 25</string>
+    <string name="tv_FeelsLike">Cảm giác như 21</string>
+    <string name="tv_Humidity">80%</string>
+    <string name="tv_Rain">0.0 mm</string>
+    <string name="tv_Sunrise">6:00</string>
+    <string name="tv_Sunset">Sunset</string>
+    <string name="tv_Wind">1 km/h</string>
+    <string name="tv_Visibility">10 km</string>
+    <string name="tv_Status">khum bit</string>
 </resources>
