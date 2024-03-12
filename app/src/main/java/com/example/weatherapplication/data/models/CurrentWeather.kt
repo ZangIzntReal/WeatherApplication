@@ -1,9 +1,17 @@
 package com.example.weatherapplication.data.models
 
 data class CurrentWeather(
-    val city: City,
-    val cnt: Int,
-    val cod: String,
-    val list: List<WeatherData>,
-    val message: Int,
+    val base: String,
+    val clouds: Clouds,
+    val cod: Int,
+    val coord: Coord,
+    val dt: Int,
+    val id: Int,
+    val main: Main,
+    val name: String,
+    val sys: Sys,
+    val timezone: Int,
+    val visibility: Int,
+    val weather: List<Weather>,
+    val wind: Wind
 )
