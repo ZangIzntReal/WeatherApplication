@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                     if (data.weather != null && data.weather.isNotEmpty()) {
                         val iconId = data.weather[0].icon
 
-                        val imgUrl = "https://openweathermap.org/img/wn/${iconId}@4x.png"
+                        val imgUrl = "https://openweathermap.org/img/wn/$iconId@4x.png"
 
                         Picasso.get().load(imgUrl).into(binding.imageWeather)
 
