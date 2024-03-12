@@ -1,5 +1,7 @@
 package com.example.weatherapplication
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.net.http.HttpException
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.weatherapplication.data.utils.RetrofitInstance
 import com.example.weatherapplication.databinding.ActivityMainBinding
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -35,12 +38,15 @@ class MainActivity : AppCompatActivity() {
         getCurrentWeather()
     }
 
+    @SuppressLint("SetTextI18n")
+    @OptIn(DelicateCoroutinesApi::class)
     private fun getCurrentWeather() {
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
                 RetrofitInstance.api.getCurrentWeather(
-                    "ha noi",
+                    "hanoi",
                     "metric",
+                    "vi",
                     applicationContext.getString(R.string.api_key)
                 )
             } catch (e: IOException) {
@@ -53,46 +59,46 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
 
+            Log.d("API_RESPONSE", response.raw().toString())
+
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {
                     val data = response.body()!!
 
-                    val iconId = data.list[0].weather[0].icon
+                    if (data.weather != null && data.weather.isNotEmpty()) {
+                        val iconId = data.weather[0].icon
 
-                    val imgUrl = "http://openweathermap.org/img/wn/$iconId@4x.png"
+                        val imgUrl = "https://openweathermap.org/img/wn/${iconId}@4x.png"
 
-                    Picasso.get().load(imgUrl).into(binding.imageWeather)
+                        Picasso.get().load(imgUrl).into(binding.imageWeather)
 
-                    binding.tvSunrise.text =
-                        SimpleDateFormat(
-                            "hh:mm a",
-                            Locale.ENGLISH
-                        ).format(data.city.sunrise * 1000)
+                        binding.tvSunrise.text =
+                            SimpleDateFormat(
+                                "hh:mm a",
+                                Locale.ENGLISH
+                            ).format(data.sys.sunrise * 1000)
 
-                    binding.tvSunset.text =
-                        SimpleDateFormat(
-                            "hh:mm a",
-                            Locale.ENGLISH
-                        ).format(data.city.sunset * 1000)
+                        binding.tvSunset.text =
+                            SimpleDateFormat(
+                                "hh:mm a",
+                                Locale.ENGLISH
+                            ).format(data.sys.sunset * 1000)
 
-                    binding.apply {
-                        tvStatus.text = data.list[0].weather[0].description
-                        tvWind.text = "${data.list[0].wind.speed} m/s"
-                        tvCity.text = data.city.name
-                        tvCountry.text = data.city.country
-                        tvTemp.text = "${data.list[0].main.temp}°C"
-                        tvFeelsLike.text = "Cảm giác như ${data.list[0].main.feels_like}°C"
-                        tvMinMax.text = "Thấp nhất ${data.list[0].main.temp_min}°C, Cao nhất${data.list[0].main.temp_max}°C"
-                        tvHumidity.text  = "Humidity: ${data.list[0].main.humidity}%"
-                        tvRain.text = "Rain: ${data.list[0].rain?.`3h` ?: 0.0} mm"
-                        tvVisibility.text = "Visibility: ${data.list[0].visibility / 1000} km"
-//                        tvUpdatetime.text = "Last Updated: ${
-//                            SimpleDateFormat(
-//                                "hh:mm a",
-//                                Locale.ENGLISH
-//                            ).format(data.list[0].dt * 1000)
-//                        }"
-
+                        binding.apply {
+                            tvStatus.text = data.weather[0].description
+                            tvWind.text = "${data.wind.speed} m/s"
+                            tvCity.text = data.name
+                            tvCountry.text = data.sys.country
+                            tvTemp.text = "${data.main.temp.toInt()}°C"
+                            tvFeelsLike.text = "Cảm giác ${data.main.feels_like.toInt()}°C"
+                            tvMinMax.text = "${data.main.temp_min.toInt()}°C/${data.main.temp_max.toInt()}°C"
+                            tvHumidity.text  = "${data.main.humidity}%"
+                            tvPressure.text = "${data.main.pressure} hPa"
+                            tvVisibility.text = "${data.visibility / 1000} km"
+                        }
+                    } else {
+                        // Handle the case where data.weather is null or empty
+                        Toast.makeText(this@MainActivity, "Weather data is not available", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

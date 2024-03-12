@@ -6,7 +6,7 @@ data class Main(
     val humidity: Int,
     val pressure: Int,
     val sea_level: Int,
-    val temp: Int,
-    val temp_max: Int,
-    val temp_min: Int
+    val temp: Double,
+    val temp_max: Double,
+    val temp_min: Double
 )

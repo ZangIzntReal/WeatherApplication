@@ -11,6 +11,7 @@ interface ApiInterface {
     suspend fun getCurrentWeather(
         @Query("q") city: String,
         @Query("units") units: String,
+        @Query("lang") lang: String,
         @Query("appid") apiKey: String,
     ): Response<CurrentWeather>
 }
