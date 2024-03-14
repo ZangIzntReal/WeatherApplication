@@ -1,10 +1,13 @@
 package com.example.weatherapplication
 
 import android.annotation.SuppressLint
+import android.database.Cursor
+import android.database.MatrixCursor
 import android.util.Log
 import android.net.http.HttpException
 import android.os.Build
 import android.os.Bundle
+import android.provider.BaseColumns
 import android.provider.Settings.Global
 //import android.widget.SearchView
 import android.widget.Toast
@@ -15,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.widget.SearchView
+import androidx.cursoradapter.widget.CursorAdapter
+import androidx.cursoradapter.widget.SimpleCursorAdapter
 import com.example.weatherapplication.data.utils.RetrofitInstance
 import com.example.weatherapplication.databinding.ActivityMainBinding
 import com.squareup.picasso.Picasso
@@ -33,11 +38,27 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding;
 
     private var city: String = "hanoi"
+    private val listCity = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        getlistCity()
+
+        val from = arrayOf("cityName")
+        val to = intArrayOf(android.R.id.text1)
+        val adapter = SimpleCursorAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            null,
+            from,
+            to,
+            CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
+        )
+        binding.searchView.suggestionsAdapter = adapter
+
 
         binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -47,13 +68,62 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                return false
+                val data = listCity.filter { it.contains(newText.toString(), true) }
+
+                val matrixCursor = MatrixCursor(arrayOf(BaseColumns._ID, "cityName"))
+                data.forEachIndexed { index: Int, suggestion: String ->
+                    matrixCursor.addRow(arrayOf(index, suggestion))
+                }
+
+                binding.searchView.suggestionsAdapter.changeCursor(matrixCursor)
+
+                return true
             }
         })
+
+        binding.searchView.setOnSuggestionListener(object : SearchView.OnSuggestionListener {
+            override fun onSuggestionSelect(position: Int): Boolean {
+                return false
+            }
+
+            @SuppressLint("Range")
+            override fun onSuggestionClick(position: Int): Boolean {
+                val cursor = binding.searchView.suggestionsAdapter.getItem(position) as Cursor
+                val suggestion = cursor.getString(cursor.getColumnIndex("cityName"))
+                binding.searchView.setQuery(suggestion, true) // Set the query text and do not submit the query
+                return true
+            }
+        })
+
 
         getCurrentWeather(city)
 
 
+    }
+
+    private fun getlistCity() {
+        GlobalScope.launch(Dispatchers.IO) {
+            val response = try {
+                RetrofitInstance.countryApi.getCountryList()
+            } catch (e: IOException) {
+                Toast.makeText(this@MainActivity, "app error ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+                return@launch
+            } catch (e: retrofit2.HttpException) {
+                Toast.makeText(this@MainActivity, "http error ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+                return@launch
+
+            }
+            Log.d("API_RESPONSE", response.raw().toString())
+
+            if (response.isSuccessful && response.body() != null) {
+                val temp = response.body()!!
+                for (i in temp.data) {
+                    listCity.addAll(i.cities)
+                }
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -77,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
 
-            Log.d("API_RESPONSE", response.raw().toString())
+
 
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {

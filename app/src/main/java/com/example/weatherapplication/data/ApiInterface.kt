@@ -1,5 +1,6 @@
 package com.example.weatherapplication.data
 
+import com.example.weatherapplication.data.countrymodels.Country
 import com.example.weatherapplication.data.models.CurrentWeather
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -14,4 +15,7 @@ interface ApiInterface {
         @Query("lang") lang: String,
         @Query("appid") apiKey: String,
     ): Response<CurrentWeather>
+
+    @GET("countries")
+    suspend fun getCountryList(): Response<Country>
 }
