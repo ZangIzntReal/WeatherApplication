@@ -50,12 +50,14 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // Sử dụng Retrofit để gọi API
     implementation("com.squareup.retrofit2:retrofit:2.8.0")
     implementation("com.squareup.retrofit2:converter-gson:2.8.0")
-
+    // Sử dụng Kotlin Coroutines cho xử lý bất đồng bộ
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-    
+    // Sử dụng Picasso để tải và hiển thị hình ảnh từ URL
     implementation("com.squareup.picasso:picasso:2.8")
+    // Sử dụng Google Play Services Location để lấy vị trí hiện tại của người dùng
     implementation("com.google.android.gms:play-services-location:21.0.1")
 }

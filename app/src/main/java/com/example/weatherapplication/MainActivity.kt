@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.provider.Settings.Global
-//import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.contextaware.withContextAvailable
 import androidx.activity.enableEdgeToEdge
@@ -37,7 +36,9 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding;
 
+    // Khởi tạo thành phố mặc định là Hanoi
     private var city: String = "hanoi"
+    // Khởi tạo danh sách thành phố
     private val listCity = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,8 +46,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Lấy danh sách thành phố
         getlistCity()
 
+        // Khởi tạo adapter cho SearchView
         val from = arrayOf("cityName")
         val to = intArrayOf(android.R.id.text1)
         val adapter = SimpleCursorAdapter(
@@ -59,15 +62,17 @@ class MainActivity : AppCompatActivity() {
         )
         binding.searchView.suggestionsAdapter = adapter
 
-
+        // Xử lý sự kiện khi người dùng nhập văn bản vào SearchView
         binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                // Khi người dùng gửi truy vấn, cập nhật thành phố và lấy thông tin thời tiết
                 city = query.toString()
                 getCurrentWeather(city)
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Khi văn bản truy vấn thay đổi, cập nhật danh sách gợi ý
                 val data = listCity.filter { it.contains(newText.toString(), true) }
 
                 val matrixCursor = MatrixCursor(arrayOf(BaseColumns._ID, "cityName"))
@@ -81,6 +86,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        // Xử lý sự kiện khi người dùng nhấp vào một gợi ý
         binding.searchView.setOnSuggestionListener(object : SearchView.OnSuggestionListener {
             override fun onSuggestionSelect(position: Int): Boolean {
                 return false
@@ -88,19 +94,19 @@ class MainActivity : AppCompatActivity() {
 
             @SuppressLint("Range")
             override fun onSuggestionClick(position: Int): Boolean {
+                // Khi người dùng nhấp vào một gợi ý, đặt văn bản truy vấn là tên thành phố được gợi ý
                 val cursor = binding.searchView.suggestionsAdapter.getItem(position) as Cursor
                 val suggestion = cursor.getString(cursor.getColumnIndex("cityName"))
-                binding.searchView.setQuery(suggestion, true) // Set the query text and do not submit the query
+                binding.searchView.setQuery(suggestion, true) // Xác nhận query khi người dùng nhấp vào gợi ý
                 return true
             }
         })
 
-
+        // Lấy thông tin thời tiết cho thành phố mặc định
         getCurrentWeather(city)
-
-
     }
 
+    // Phương thức để lấy danh sách thành phố
     private fun getlistCity() {
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
@@ -113,8 +119,8 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "http error ${e.message}", Toast.LENGTH_SHORT)
                     .show()
                 return@launch
-
             }
+
             Log.d("API_RESPONSE", response.raw().toString())
 
             if (response.isSuccessful && response.body() != null) {
@@ -126,6 +132,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Phương thức để lấy thông tin thời tiết hiện tại cho một thành phố cụ thể
     @SuppressLint("SetTextI18n")
     @OptIn(DelicateCoroutinesApi::class)
     private fun getCurrentWeather(city: String) {
@@ -146,8 +153,6 @@ class MainActivity : AppCompatActivity() {
                     .show()
                 return@launch
             }
-
-
 
             if (response.isSuccessful && response.body() != null) {
                 withContext(Dispatchers.Main) {
@@ -172,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                                 Locale.ENGLISH
                             ).format(data.sys.sunset * 1000)
 
+                        // Cập nhật giao diện người dùng với thông tin thời tiết nhận được
                         binding.apply {
                             tvStatus.text = data.weather[0].description
                             tvWind.text = "${data.wind.speed} m/s"
@@ -185,7 +191,7 @@ class MainActivity : AppCompatActivity() {
                             tvVisibility.text = "${data.visibility / 1000} km"
                         }
                     } else {
-                        // Handle the case where data.weather is null or empty
+                        // Hiển thị thông báo nếu không có dữ liệu thời tiết
                         Toast.makeText(this@MainActivity, "Weather data is not available", Toast.LENGTH_SHORT).show()
                     }
                 }
