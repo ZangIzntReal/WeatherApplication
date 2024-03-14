@@ -6,6 +6,7 @@ import android.net.http.HttpException
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings.Global
+//import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.contextaware.withContextAvailable
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +14,7 @@ import androidx.annotation.RequiresExtension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.appcompat.widget.SearchView
 import com.example.weatherapplication.data.utils.RetrofitInstance
 import com.example.weatherapplication.databinding.ActivityMainBinding
 import com.squareup.picasso.Picasso
@@ -30,21 +32,37 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding;
 
+    private var city: String = "hanoi"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getCurrentWeather()
+        binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                city = query.toString()
+                getCurrentWeather(city)
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
+
+        getCurrentWeather(city)
+
+
     }
 
     @SuppressLint("SetTextI18n")
     @OptIn(DelicateCoroutinesApi::class)
-    private fun getCurrentWeather() {
+    private fun getCurrentWeather(city: String) {
         GlobalScope.launch(Dispatchers.IO) {
             val response = try {
                 RetrofitInstance.api.getCurrentWeather(
-                    "hanoi",
+                    city,
                     "metric",
                     "vi",
                     applicationContext.getString(R.string.api_key)
