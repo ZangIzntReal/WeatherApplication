@@ -32,6 +32,7 @@ import retrofit2.Response
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding;
@@ -165,17 +166,19 @@ class MainActivity : AppCompatActivity() {
 
                         Picasso.get().load(imgUrl).into(binding.imageWeather)
 
-                        binding.tvSunrise.text =
-                            SimpleDateFormat(
-                                "hh:mm a",
-                                Locale.ENGLISH
-                            ).format(data.sys.sunrise * 1000)
 
-                        binding.tvSunset.text =
-                            SimpleDateFormat(
-                                "hh:mm a",
-                                Locale.ENGLISH
-                            ).format(data.sys.sunset * 1000)
+                        // Lấy thông tin về múi giờ từ phản hồi API
+                        val timezoneOffsetInSeconds = data.timezone
+                        val hours = timezoneOffsetInSeconds / 3600
+                        val minutes = (timezoneOffsetInSeconds % 3600) / 60
+                        val timezoneOffset = String.format("%02d:%02d", hours, minutes)
+
+                        // Tạo một đối tượng SimpleDateFormat với múi giờ tương ứng
+                        val dateFormat = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
+                        dateFormat.timeZone = TimeZone.getTimeZone("GMT$timezoneOffset")
+
+                        binding.tvSunrise.text = dateFormat.format(data.sys.sunrise * 1000)
+                        binding.tvSunset.text = dateFormat.format(data.sys.sunset * 1000)
 
                         // Cập nhật giao diện người dùng với thông tin thời tiết nhận được
                         binding.apply {
